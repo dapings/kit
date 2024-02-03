@@ -2,6 +2,7 @@ package redis
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"sync"
 	"time"
@@ -19,6 +20,13 @@ var (
 	WrongAnswer = errors.New("redis: get wrong answer")
 	EmptyAnswer = errors.New("redis: get empty answer")
 )
+
+type Server struct {
+	Host string
+	Port string
+	Auth string
+	DB   string
+}
 
 type Pool struct {
 	mu *sync.RWMutex
@@ -147,4 +155,82 @@ func (p *Pool) Do(cmdStr string, args ...any) (reply any, err error) {
 	}
 
 	return
+}
+
+func (p *Pool) Close() error {
+	for i := range p.pools {
+		p.pools[i].Close()
+	}
+	p.pool = nil
+
+	return nil
+}
+
+func NewRedisPool(s []Server) (*Pool, error) {
+	if len(s) <= 0 {
+		return nil, ServerEmptyErr
+	}
+
+	p := &Pool{
+		status:  make(map[int]bool),
+		entropy: make(map[int]int),
+		servers: make(map[int]string),
+	}
+
+	for i := range s {
+		rp, _ := newTimeoutPool(s[i], 1*time.Second, 2*time.Second, 2*time.Second)
+		if _, err := rp.Dial(); err != nil {
+			continue
+		}
+
+		p.pools = append(p.pools, rp)
+		p.entropy[i] = 0
+		p.status[i] = true
+		p.servers[i] = s[i].Host
+	}
+
+	p.index = 0
+	if len(p.pools) > p.index {
+		p.pool = p.pools[p.index]
+	}
+
+	return p, nil
+}
+
+func newTimeoutPool(s Server, connTimeout, readTimeout, writeTimeout time.Duration) (*redis.Pool, error) {
+	return &redis.Pool{
+		Dial: func() (redis.Conn, error) {
+			conn, err := redis.Dial("tcp", fmt.Sprintf("%s:%s", s.Host, s.Port),
+				redis.DialConnectTimeout(connTimeout),
+				redis.DialReadTimeout(readTimeout),
+				redis.DialWriteTimeout(writeTimeout))
+			if err != nil {
+				return nil, err
+			}
+
+			if !(s.Auth == "" || s.Auth == "nil") {
+				_, err = conn.Do("AUTH", s.Auth)
+				if err != nil {
+					conn.Close()
+					return nil, err
+				}
+			}
+
+			if s.DB != "" {
+				_, err = conn.Do("SELECT", s.DB)
+				if err != nil {
+					conn.Close()
+					return nil, err
+				}
+			}
+
+			return conn, nil
+		},
+		TestOnBorrow: func(conn redis.Conn, _ time.Time) error {
+			_, err := conn.Do("PING")
+			return err
+		},
+		MaxIdle:     5,
+		IdleTimeout: 600 * time.Second,
+	}, nil
 }
