@@ -2,9 +2,14 @@ package std
 
 import (
 	"encoding/json"
+	"fmt"
 	"net"
 	"strings"
 )
+
+func Stringify(v ...any) string {
+	return fmt.Sprintf(strings.Repeat("%+v", len(v)), v...)
+}
 
 // ValidIPAddr reports whether a valid ip addr.
 func ValidIPAddr(ip string) bool {
@@ -57,4 +62,20 @@ func JSONDump(val any) string {
 	}
 
 	return ""
+}
+
+func SafeGo(run func()) {
+	var routine func()
+
+	routine = func() {
+		defer func() {
+			if err := recover(); err != nil {
+				go routine()
+			}
+		}()
+
+		run()
+	}
+
+	go routine()
 }
