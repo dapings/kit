@@ -34,7 +34,7 @@ func TestSplitDomainByLevel(t *testing.T) {
 	for _, tt := range testDomains {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			parts, err := SplitDomainByLevel(tt.domain, tt.level)
+			parts, err := SplitDomainBySpecifyLevel(tt.domain, tt.level)
 			if err != nil {
 				t.Fatal(err)
 			}

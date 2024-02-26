@@ -142,5 +142,16 @@ func SplitDomainBySpecifyLevel(domainName string, level int) ([]string, error) {
 		levelDomains = append(levelDomains, "."+strings.Join(parts[len(parts)-i-1:], ".")+levelDomains[1])
 	}
 
+	// remove dup from levelDomains
+	unique := make([]string, 0, len(levelDomains))
+	seen := make(map[string]struct{})
+	for _, domain := range levelDomains {
+		if _, ok := seen[domain]; !ok {
+			unique = append(unique, domain)
+			seen[domain] = struct{}{}
+		}
+	}
+	levelDomains = unique
+
 	return levelDomains, nil
 }
