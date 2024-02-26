@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"regexp"
 	"strings"
+
+	"golang.org/x/net/publicsuffix"
 )
 
 func GetMD5(data string) string {
@@ -108,4 +110,37 @@ func IsValidDomainName(domainName string) bool {
 	}
 
 	return true
+}
+
+// SplitDomainBySpecifyLevel 将域名按指定层级拆分，形成泛域名+域名集合
+func SplitDomainBySpecifyLevel(domainName string, level int) ([]string, error) {
+	levelDomains := []string{domainName}
+	if !IsValidDomainName(domainName) {
+		return levelDomains, nil
+	}
+
+	// 生成 TLD 泛域名
+	tld, err := publicsuffix.EffectiveTLDPlusOne(strings.TrimPrefix(domainName, "."))
+	if err != nil {
+		return levelDomains, err
+	}
+
+	levelDomains = append(levelDomains, "."+tld)
+	notTLDPartDomain := strings.TrimSuffix(domainName, "."+tld)
+	parts := strings.Split(notTLDPartDomain, ".")
+
+	if level <= 0 {
+		level = 1
+	}
+	// remove tld level
+	level = level - 1
+	if len(parts) <= level-1 {
+		return levelDomains, nil
+	}
+
+	for i := 0; i < level; i++ {
+		levelDomains = append(levelDomains, "."+strings.Join(parts[len(parts)-i-1:], ".")+levelDomains[1])
+	}
+
+	return levelDomains, nil
 }
