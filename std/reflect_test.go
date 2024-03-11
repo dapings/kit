@@ -36,4 +36,8 @@ func TestGetStructFieldValue(t *testing.T) {
 	if val := getStructFieldValue(testCase, "unknown"); val != nil {
 		t.Errorf("unknown fileld, should be empty")
 	}
+
+	if val := getStructFieldValue(testCase, ""); val != nil {
+		t.Errorf("empty fileld, should be empty")
+	}
 }
