@@ -1,6 +1,9 @@
 package std
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func TestGetWildcardDomain(t *testing.T) {
 	testCases := []struct {
@@ -269,5 +272,35 @@ func TestGetRootDomainName(t *testing.T) {
 				t.Fatalf("expected %s parts, but got %s", tt.rootDomain, got)
 			}
 		})
+	}
+}
+
+func TestSafeGo(t *testing.T) {
+	done := make(chan int)
+	SafeGo(func() {
+		// e.g. http request
+		result := 1
+		//time.Sleep(3 * time.Second)
+
+		select {
+		case done <- result:
+			println("input result to done chan")
+			return
+		default:
+			println("default ...")
+			return
+		}
+	})
+
+	timeoutTimer := time.NewTimer(5 * time.Second)
+	defer timeoutTimer.Stop()
+
+	select {
+	case <-done:
+		println("output result from done chan")
+		return
+	case <-timeoutTimer.C:
+		println("output timeout from timer chan")
+		return
 	}
 }
