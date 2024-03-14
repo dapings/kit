@@ -1,19 +1,11 @@
 package std
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"regexp"
 	"strings"
 
 	"golang.org/x/net/publicsuffix"
 )
-
-func GetMD5(data string) string {
-	md5sum := md5.New()
-	md5sum.Write([]byte(data))
-	return hex.EncodeToString(md5sum.Sum(nil))
-}
 
 func RemoveDuplicateStringSlice(tmp []string) []string {
 	seen := make(map[string]struct{})
