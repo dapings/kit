@@ -41,6 +41,11 @@ func TestGetWildcardDomain(t *testing.T) {
 			domain:   "foo.com.cn",
 			wildcard: ".com.cn",
 		},
+		{
+			name:     "a.b.c.com",
+			domain:   "a.b.c.com",
+			wildcard: ".b.c.com",
+		},
 	}
 
 	for _, tt := range testCases {
