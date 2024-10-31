@@ -40,6 +40,18 @@ func RemoveStringSlice(s []string, removed []string) []string {
 	return s
 }
 
+func RemoveDuplicateStringList(tem []string) []string {
+	seen := make(map[string]int)
+	var result []string
+	for _, t := range tem {
+		if _, ok := seen[t]; !ok {
+			seen[t] = 1
+			result = append(result, t)
+		}
+	}
+	return result
+}
+
 func FindStrInSlice(list []string, str string) int {
 	for i, v := range list {
 		if v == str {
@@ -48,6 +60,21 @@ func FindStrInSlice(list []string, str string) int {
 	}
 
 	return -1
+}
+
+func InterStringSlice(s1 []string, s2 []string) []string {
+	o := make(map[string]struct{})
+	for _, s := range s1 {
+		o[s] = struct{}{}
+	}
+
+	var result []string
+	for _, s := range s2 {
+		if _, ok := o[s]; ok {
+			result = append(result, s)
+		}
+	}
+	return result
 }
 
 func ReverseStr(str string) string {
@@ -112,6 +139,7 @@ func SplitDomainBySpecifyLevel(domainName string, level int) ([]string, error) {
 	}
 
 	// 生成 TLD 泛域名
+	// See https://publicsuffix.org/list/public_suffix_list.dat
 	tld, err := publicsuffix.EffectiveTLDPlusOne(strings.TrimPrefix(domainName, "."))
 	if err != nil {
 		return levelDomains, err
@@ -119,7 +147,10 @@ func SplitDomainBySpecifyLevel(domainName string, level int) ([]string, error) {
 
 	levelDomains = append(levelDomains, "."+tld)
 	notTLDPartDomain := strings.TrimSuffix(domainName, "."+tld)
-	parts := strings.Split(notTLDPartDomain, ".")
+	var parts []string
+	if notTLDPartDomain != tld {
+		parts = strings.Split(notTLDPartDomain, ".")
+	}
 
 	if level <= 0 {
 		level = 1
