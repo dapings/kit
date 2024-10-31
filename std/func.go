@@ -1,6 +1,8 @@
 package std
 
 import (
+	"fmt"
+	"path"
 	"reflect"
 	"runtime"
 	"strings"
@@ -23,6 +25,18 @@ func ParentFuncName() string {
 		return funcDesc.Name()
 	}
 
+	return ""
+}
+
+// ParentFuncNameAndFileLine 获取调用者的详细信息，包括函数名、文件名及行数
+func ParentFuncNameAndFileLine() string {
+	// 获取调用者的PC(程序计数器)地址，skip为1，+1是要跳过当前函数本身
+	pc, file, line, ok := runtime.Caller(2)
+	details := runtime.FuncForPC(pc)
+	if ok && details != nil {
+		_, filename := path.Split(file)
+		return fmt.Sprintf("[%s:L%d]%s", filename, line, details.Name())
+	}
 	return ""
 }
 
