@@ -44,3 +44,7 @@ func CallerFile(skip int) string {
 
 	return fmt.Sprintf(fileNameAndLineNumFormat, fileName, line)
 }
+
+func Error(args ...interface{}) {}
+
+func ErrorExt(skip int, args ...interface{}) {}
