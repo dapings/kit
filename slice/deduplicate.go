@@ -7,8 +7,8 @@ func Deduplicate[T comparable](data []T) []T {
 	// convert the given slice to a map, auto deduplicate.
 	mp := toMap(data)
 	result := make([]T, 0, len(mp))
-	for val := range mp {
-		result = append(result, val)
+	for item := range mp {
+		result = append(result, item)
 	}
 	return result
 }
