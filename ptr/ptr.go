@@ -20,8 +20,8 @@ func GetValueOrDefault[T any](src *T) (t T) {
 	return
 }
 
-// IsAllPointerNil 判断结构体内所有指针字段是否都为nil
-func IsAllPointerNil(s any) bool {
+// IsAllPointerNilInStruct 判断结构体内所有指针字段是否都为nil
+func IsAllPointerNilInStruct(s any) bool {
 	val := reflect.ValueOf(s)
 	if val.Kind() != reflect.Struct {
 		return false
