@@ -13,6 +13,9 @@ func Contains[T comparable](data []T, dst T) bool {
 // If the given element is found in the slice, returns true, otherwise returns false.
 // 通过提供的相等函数，检查给定的 slice 中是否包含指定元素。如果找到了指定的元素，返回 true，否则返回 false。
 func ContainsByFunc[T any](data []T, dst T, eqFunc equalFunc[T]) bool {
+	if eqFunc == nil {
+		return false
+	}
 	for _, src := range data {
 		if eqFunc(src, dst) {
 			return true
