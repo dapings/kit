@@ -20,9 +20,9 @@ func Diff[T comparable](s1, s2 []T) []T {
 // 返回的新切片已去重。
 func DiffFunc[T any](s1, s2 []T, equal equalFunc[T]) []T {
 	result := make([]T, 0, len(s1))
-	for _, v := range s1 {
-		if !ContainsByFunc[T](s2, v, equal) {
-			result = append(result, v)
+	for _, v1 := range s1 {
+		if !ContainsByFunc[T](s2, v1, equal) {
+			result = append(result, v1)
 		}
 	}
 	return DeduplicateByEqFunc(result, equal)
