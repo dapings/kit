@@ -66,10 +66,28 @@ func DeQueue(pool *Pool, queueName string) (key string, data []byte) {
 		return "", nil
 	}
 
+	queueLen, err := pool.LLen(queueName)
+	if err != nil || queueLen == 0 {
+		return "", nil
+	}
+
+	// 针对每个队列都可配置，默认100
+	quenueLenLimt := 100
+	if queueLen >= int64(quenueLenLimt) && queueLen < 10*int64(quenueLenLimt) {
+		// warn: queue length is over limit
+		return "", nil
+	} else if queueLen >= 10*int64(quenueLenLimt) {
+		// error: queue length is over limit
+		return "", nil
+	}
+
 	key = string(k)
 	result, err = pool.HPop(queueName+hTable, key)
-	if err != nil || result == nil {
+	if err != nil {
 		return "", nil
+	}
+	if result == nil {
+		return key, nil
 	}
 
 	data, ok = result.([]byte)
@@ -81,6 +99,15 @@ func DeQueue(pool *Pool, queueName string) (key string, data []byte) {
 }
 
 func CheckLocked(pool *Pool, key string) bool {
+	val, err := pool.Get(key)
+	if err != nil || val != nil {
+		return true
+	}
+
+	return false
+}
+
+func RetryAll(pool *Pool, key string) bool {
 	val, err := pool.Get(key)
 	if err != nil || val != nil {
 		return true

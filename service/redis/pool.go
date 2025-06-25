@@ -230,7 +230,7 @@ func newTimeoutPool(s Server, connTimeout, readTimeout, writeTimeout time.Durati
 			_, err := conn.Do("PING")
 			return err
 		},
-		MaxIdle:     5,
+		MaxIdle:     500,
 		IdleTimeout: 600 * time.Second,
 	}, nil
 }
