@@ -2,11 +2,11 @@ package redis
 
 import (
 	"errors"
-	"fmt"
 	"net"
 	"sync"
 	"time"
 
+	"github.com/dapings/kit/service/dns"
 	"github.com/gomodule/redigo/redis"
 )
 
@@ -198,9 +198,17 @@ func NewRedisPool(s []Server) (*Pool, error) {
 }
 
 func newTimeoutPool(s Server, connTimeout, readTimeout, writeTimeout time.Duration) (*redis.Pool, error) {
-	return &redis.Pool{
+	ips, dnsErr := dns.ResolveAndCache(s.Host)
+	if dnsErr != nil {
+		return nil, dnsErr
+	}
+
+	pool := &redis.Pool{
 		Dial: func() (redis.Conn, error) {
-			conn, err := redis.Dial("tcp", fmt.Sprintf("%s:%s", s.Host, s.Port),
+			// 从缓存中选择 IP（可随机选择或轮询）
+			ip := ips[0]
+			addr := net.JoinHostPort(ip, s.Port)
+			conn, err := redis.Dial("tcp", addr,
 				redis.DialConnectTimeout(connTimeout),
 				redis.DialReadTimeout(readTimeout),
 				redis.DialWriteTimeout(writeTimeout))
@@ -232,5 +240,6 @@ func newTimeoutPool(s Server, connTimeout, readTimeout, writeTimeout time.Durati
 		},
 		MaxIdle:     500,
 		IdleTimeout: 600 * time.Second,
-	}, nil
+	}
+	return pool, nil
 }
