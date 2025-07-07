@@ -9,7 +9,7 @@ import (
 var (
 	dnsCache      = make(map[string]*cachedIP)
 	dnsCacheMutex sync.RWMutex
-	cacheTTL      = 1 * time.Minute
+	cacheTTL      = 10 * time.Second
 )
 
 type cachedIP struct {
